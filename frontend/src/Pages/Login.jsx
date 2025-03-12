@@ -1,5 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
+import axios from "axios";
+import { ToastContainer, toast } from 'react-toastify';
+
 
 // Hero Section Component
 const LoginHero = () => (
@@ -24,72 +27,124 @@ const LoginHero = () => (
   </div>
 );
 
-// Login Form Component
-const LoginForm = () => (
-  <motion.div
-    initial={{ opacity: 0, x: -50 }}
-    whileInView={{ opacity: 1, x: 0 }}
-    transition={{ duration: 0.8, ease: "easeOut" }}
-    className="bg-gray-900/50 backdrop-blur-lg rounded-3xl p-16 sm:p-20 shadow-2xl hover:shadow-cyan-500/50 transition-all duration-300 mx-auto w-full max-w-md"
-  >
-    <h2 className="text-2xl sm:text-3xl font-bold mb-10 sm:mb-12 text-white text-center">Login</h2>
-    <form className="space-y-12 sm:space-y-16">
-      {/* Email Field */}
-      <div className="flex flex-col w-full">
-        <label className="block text-gray-300 text-base sm:text-lg mb-2 ml-8 text-left translate-x-8">Email</label>
-        <div className="flex justify-center">
-          <input
-            type="email"
-            className="w-full max-w-sm px-4 py-3 sm:px-5 sm:py-3 rounded-lg bg-gray-800/50 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 placeholder-gray-400 transition-all duration-300 hover:bg-gray-700/50"
-            placeholder="Your Email"
-          />
+// Login Form Component with API Integration
+const LoginForm = () => {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  // Handle Input Change
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Handle Form Submit
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await axios.post("http://localhost:5000/api/login/", formData);
+      setSuccess("Login successful!");
+      console.log("Response:", response.data);
+
+      // Store Token (if API provides it)
+      if (response.data.token) {
+        localStorage.setItem("authToken", response.data.token);
+        toast.success("Login Successful");
+      }
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 1500);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Login failed!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -50 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+      className="bg-gray-900/50 backdrop-blur-lg rounded-3xl p-16 sm:p-20 shadow-2xl hover:shadow-cyan-500/50 transition-all duration-300 mx-auto w-full max-w-md"
+    >
+      <h2 className="text-2xl sm:text-3xl font-bold mb-10 sm:mb-12 text-white text-center">Login</h2>
+      {error && <p className="text-red-500 text-center">{error}</p>}
+      {success && <p className="text-green-500 text-center">{success}</p>}
+      
+      <form className="space-y-12 sm:space-y-16" onSubmit={handleSubmit}>
+        {/* Email Field */}
+        <div className="flex flex-col w-full">
+          <label className="block text-gray-300 text-base sm:text-lg mb-2 ml-8 text-left translate-x-8">Email</label>
+          <div className="flex justify-center">
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full max-w-sm px-4 py-3 sm:px-5 sm:py-3 rounded-lg bg-gray-800/50 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 placeholder-gray-400 transition-all duration-300 hover:bg-gray-700/50"
+              placeholder="Your Email"
+              required
+            />
+          </div>
         </div>
-      </div>
 
-      {/* Password Field */}
-      <div className="flex flex-col w-full">
-        <label className="block text-gray-300 text-base sm:text-lg mb-2 ml-8 text-left translate-x-8">Password</label>
-        <div className="flex justify-center">
-          <input
-            type="password"
-            className="w-full max-w-sm px-4 py-3 sm:px-5 sm:py-3 rounded-lg bg-gray-800/50 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 placeholder-gray-400 transition-all duration-300 hover:bg-gray-700/50"
-            placeholder="Your Password"
-          />
+        {/* Password Field */}
+        <div className="flex flex-col w-full">
+          <label className="block text-gray-300 text-base sm:text-lg mb-2 ml-8 text-left translate-x-8">Password</label>
+          <div className="flex justify-center">
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full max-w-sm px-4 py-3 sm:px-5 sm:py-3 rounded-lg bg-gray-800/50 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 placeholder-gray-400 transition-all duration-300 hover:bg-gray-700/50"
+              placeholder="Your Password"
+              required
+            />
+          </div>
         </div>
-      </div>
 
-      {/* Remember Me and Forgot Password */}
-      <div className="flex justify-between items-center w-full max-w-sm mx-auto translate-x-8">
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            className="rounded text-cyan-500 focus:ring-cyan-500"
-          />
-          <label className="text-gray-400 text-sm sm:text-base">Remember me</label>
+        {/* Remember Me and Forgot Password */}
+        <div className="flex justify-between items-center w-full max-w-sm mx-auto translate-x-8">
+          <div className="flex items-center space-x-2">
+            <input type="checkbox" className="rounded text-cyan-500 focus:ring-cyan-500" />
+            <label className="text-gray-400 text-sm sm:text-base">Remember me</label>
+          </div>
+          <a href="#" className="text-cyan-400 text-sm sm:text-base hover:text-cyan-300 transition-colors">
+            Forgot Password?
+          </a>
         </div>
-        <a href="#" className="text-cyan-400 text-sm sm:text-base hover:text-cyan-300 transition-colors">
-          Forgot Password?
-        </a>
-      </div>
 
-      {/* Submit Button */}
-      <button
-        type="submit"
-        className="w-full max-w-sm mx-auto px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-base sm:text-lg rounded-full hover:from-cyan-600 hover:to-blue-600 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cyan-500/50 translate-x-8"
-      >
-        Sign In
-      </button>
+        {/* Submit Button */}
+        <button
+          type="submit"
+          className="w-full max-w-sm mx-auto px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-base sm:text-lg rounded-full hover:from-cyan-600 hover:to-blue-600 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cyan-500/50 translate-x-8"
+          disabled={loading}
+        >
+          {loading ? "Signing In..." : "Sign In"}
+        </button>
 
-      {/* Signup Link */}
-      <div className="text-center mt-8 sm:mt-10 translate-x-8">
-        <span className="text-gray-400 text-sm sm:text-base">Don't have an account?</span>
-        <a href="/signup" className="text-cyan-400 ml-2 hover:text-cyan-300 transition-colors">
-          Sign up
-        </a>
-      </div>
-    </form>
-  </motion.div>
-);
+        {/* Signup Link */}
+        <div className="text-center mt-8 sm:mt-10 translate-x-8">
+          <span className="text-gray-400 text-sm sm:text-base">Don't have an account?</span>
+          <a href="/signup" className="text-cyan-400 ml-2 hover:text-cyan-300 transition-colors">
+            Sign up
+          </a>
+        </div>
+      </form>
+    </motion.div>
+  );
+};
 
 // Main Login Page Component
 const LoginPage = () => (
