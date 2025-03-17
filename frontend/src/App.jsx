@@ -8,6 +8,9 @@ import Contact from './Pages/Contact'
 import Login from './Pages/Login'
 import Signup from './Pages/Signup'
 import Dashboard from './Pages/Dashboard'
+import Footer from './components/Footer';
+import ProtectedRoute from './components/ProtectedRoute';
+import NotFound from './components/NotFound';
 
 const App = () => {
   return (
@@ -18,7 +21,9 @@ const App = () => {
         <Route path="/contact" element={<Contact/>}/>
         <Route path="/login" element={<Login/>}/>
         <Route path="/signup" element={<Signup/>}/>
-        <Route path ="/dashboard" element={<Dashboard/>}/>
+        <Route path ="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="*" element={<NotFound />} />
+
       </Routes>
       <ToastContainer
         position="top-right"
@@ -32,6 +37,7 @@ const App = () => {
         pauseOnHover
         theme="dark"
       />
+      <Footer/>
     </div>
   )
 }
